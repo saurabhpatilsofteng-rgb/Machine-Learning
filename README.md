@@ -1,9 +1,879 @@
 # Machine-Learning
 
-Machine Learning Fundamentals — Complete Notes, Explanations and Python Code
-These notes cover all 13 topics in your syllabus, from basic AI concepts to building and deploying machine learning models. The examples use Python, NumPy, pandas, Matplotlib, and scikit-learn, which are useful for learning ML fundamentals and integrating models with Java/Spring Boot applications later.
-1. AI vs. Machine Learning vs. Deep Learning
+from pathlib import Path
 
+content = r'''# Machine Learning Fundamentals — Complete Notes and Python Examples
+
+These notes cover core Machine Learning (ML) concepts, algorithms, model evaluation, deployment, and responsible AI. Examples use Python, NumPy, pandas, Matplotlib, and scikit-learn.
+
+## Table of Contents
+
+1. [AI vs. ML vs. Deep Learning](#1-ai-vs-ml-vs-deep-learning)
+2. [Types of Machine Learning](#2-types-of-machine-learning)
+3. [Linear and Logistic Regression](#3-linear-and-logistic-regression)
+4. [Decision Trees, Random Forests, and Gradient Boosting](#4-decision-trees-random-forests-and-gradient-boosting)
+5. [K-Means and Dimensionality Reduction](#5-k-means-and-dimensionality-reduction)
+6. [Feature Scaling, Encoding, and Selection](#6-feature-scaling-encoding-and-selection)
+7. [Overfitting, Underfitting, and Bias–Variance](#7-overfitting-underfitting-and-biasvariance)
+8. [Cross-Validation and Hyperparameter Tuning](#8-cross-validation-and-hyperparameter-tuning)
+9. [Classification Metrics](#9-classification-metrics)
+10. [Regression Metrics](#10-regression-metrics)
+11. [Pipelines and Model Persistence](#11-pipelines-and-model-persistence)
+12. [Inference APIs and Monitoring](#12-inference-apis-and-monitoring)
+13. [Ethics, Explainability, and Privacy](#13-ethics-explainability-and-privacy)
+
+---
+
+## 1. AI vs. ML vs. Deep Learning
+
+- **Artificial Intelligence (AI):** The broad field of building systems that perform tasks associated with human intelligence.
+- **Machine Learning (ML):** A subset of AI where systems learn patterns from data.
+- **Deep Learning (DL):** A subset of ML that uses neural networks with multiple layers.
+
+| Feature | AI | ML | Deep Learning |
+|---|---|---|---|
+| Scope | Broadest field | Subset of AI | Subset of ML |
+| Approach | Rules, search, reasoning, learning | Learns from data | Multilayer neural networks |
+| Example | Rule-based assistant | Salary prediction | Image recognition |
+
+**Remember:** Deep Learning is part of Machine Learning, and Machine Learning is part of AI. Not every AI system uses ML.
+
+## 2. Types of Machine Learning
+
+### Supervised learning
+
+Learns from labeled examples: input features `X` and known target `y`.
+
+Examples: salary prediction, spam detection, pass/fail prediction.
+
+Common algorithms: Linear Regression, Logistic Regression, Decision Trees.
+
+### Unsupervised learning
+
+Finds structure in data without predefined target labels.
+
+Examples: customer segmentation and grouping similar documents.
+
+Common algorithms: K-Means and Principal Component Analysis (PCA).
+
+### Reinforcement learning
+
+An agent learns by taking actions in an environment and receiving rewards or penalties.
+
+Key terms: **agent, environment, state, action, reward, policy**.
+
+### Important distinctions
+
+- **Classification:** Predicts a category, such as Approved or Rejected.
+- **Regression:** Predicts a numerical value, such as salary.
+- **Clustering:** Discovers groups in unlabeled data.
+- **Reinforcement learning:** Learns actions that maximize cumulative reward.
+
+## 3. Linear and Logistic Regression
+
+### 3.1 Linear Regression
+
+Linear Regression predicts a continuous numerical value.
+
+Formula:
+
+\[
+\hat{y} = b_0 + b_1x
+\]
+
+- `x`: input feature
+- `ŷ`: predicted output
+- `b0`: intercept
+- `b1`: coefficient or slope
+
+Example: predict salary based on years of experience.
+
+```python
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+# Input features must be a 2D array
+X = np.array([[1], [2], [3], [4], [5]])
+y = np.array([30000, 35000, 40000, 45000, 50000])
+
+model = LinearRegression()
+model.fit(X, y)
+
+predicted_salary = model.predict([[6]])
+print("Predicted salary:", predicted_salary[0])
+print("Coefficient:", model.coef_[0])
+print("Intercept:", model.intercept_)
+```
+
+The prediction for six years of experience should be approximately `55000`.
+
+- `fit()` learns model parameters from training data.
+- `predict()` generates predictions for new inputs.
+- Ordinary least squares minimizes the sum of squared residuals.
+
+### 3.2 Logistic Regression
+
+Despite its name, Logistic Regression is mainly used for classification. It estimates the probability of a class.
+
+\[
+p = \frac{1}{1 + e^{-z}}, \qquad z = b_0 + b_1x
+\]
+
+The sigmoid function converts a score into a value between 0 and 1. A threshold such as `0.5` can turn a probability into a predicted class.
+
+```python
+from sklearn.linear_model import LogisticRegression
+
+X = [[1], [2], [3], [4], [5], [6], [7], [8]]
+y = [0, 0, 0, 0, 1, 1, 1, 1]  # 0 = fail, 1 = pass
+
+model = LogisticRegression()
+model.fit(X, y)
+
+probability = model.predict_proba([[6]])[0][1]
+prediction = model.predict([[6]])[0]
+
+print("Pass probability:", probability)
+print("Predicted class:", prediction)
+```
+
+| Linear Regression | Logistic Regression |
+|---|---|
+| Predicts continuous values | Predicts class probabilities |
+| Often uses squared error | Uses logistic loss |
+| Example: salary prediction | Example: pass/fail prediction |
+
+## 4. Decision Trees, Random Forests, and Gradient Boosting
+
+### 4.1 Decision Tree
+
+A Decision Tree splits data using feature-based conditions. It is easy to interpret but may overfit.
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+
+X = [[0], [1], [2], [3], [4], [5]]
+y = [0, 0, 0, 1, 1, 1]
+
+model = DecisionTreeClassifier(max_depth=2, random_state=42)
+model.fit(X, y)
+
+print(model.predict([[4]]))
+```
+
+`max_depth` limits tree depth and can help control overfitting.
+
+### 4.2 Random Forest
+
+Random Forest trains multiple decision trees on randomized samples and combines their predictions. Classification usually uses voting; regression usually averages predictions.
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+
+X = [[0], [1], [2], [3], [4], [5]]
+y = [0, 0, 0, 1, 1, 1]
+
+model = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=5,
+    random_state=42
+)
+model.fit(X, y)
+
+print(model.predict([[4]]))
+```
+
+Useful parameters:
+- `n_estimators`: number of trees
+- `max_depth`: maximum depth of each tree
+- `min_samples_leaf`: minimum samples required in a leaf
+- `random_state`: makes randomized results reproducible
+
+### 4.3 Gradient Boosting
+
+Gradient Boosting builds trees sequentially. Each new tree helps correct errors made by the existing ensemble by optimizing a loss function.
+
+```python
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+X = [[0], [1], [2], [3], [4], [5]]
+y = [0, 0, 0, 1, 1, 1]
+
+model = HistGradientBoostingClassifier(
+    learning_rate=0.1,
+    max_iter=100,
+    max_leaf_nodes=15,
+    random_state=42
+)
+model.fit(X, y)
+
+print(model.predict([[4]]))
+```
+
+| Algorithm | How it works | Main consideration |
+|---|---|---|
+| Decision Tree | One tree | Interpretable; may overfit |
+| Random Forest | Combines many trees | Robust baseline; can use more memory |
+| Gradient Boosting | Adds trees sequentially | Powerful; requires careful tuning |
+
+## 5. K-Means and Dimensionality Reduction
+
+### 5.1 K-Means Clustering
+
+K-Means groups observations into `K` clusters, commonly using Euclidean distance.
+
+Steps:
+1. Choose `K` initial centroids.
+2. Assign each point to its nearest centroid.
+3. Recalculate each centroid as the mean of its assigned points.
+4. Repeat until assignments or centroids stabilize.
+
+```python
+from sklearn.cluster import KMeans
+
+X = [
+    [20, 2000],
+    [22, 2200],
+    [25, 2500],
+    [45, 8000],
+    [48, 8500],
+    [50, 9000]
+]
+
+model = KMeans(n_clusters=2, random_state=42, n_init=10)
+labels = model.fit_predict(X)
+
+print("Cluster labels:", labels)
+print("Centroids:", model.cluster_centers_)
+```
+
+Cluster labels are arbitrary identifiers, not ranked categories. Scale features before K-Means when units or ranges differ significantly.
+
+### 5.2 Principal Component Analysis (PCA)
+
+Dimensionality reduction decreases the number of features while retaining useful information. PCA transforms numerical features into fewer orthogonal components that capture as much variance as possible.
+
+```python
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+X = [
+    [20, 2000, 5],
+    [22, 2200, 6],
+    [25, 2500, 7],
+    [45, 8000, 15],
+    [48, 8500, 16],
+    [50, 9000, 17]
+]
+
+scaled_X = StandardScaler().fit_transform(X)
+
+pca = PCA(n_components=2)
+reduced_X = pca.fit_transform(scaled_X)
+
+print("Original shape:", len(X), len(X[0]))
+print("Reduced shape:", reduced_X.shape)
+print("Explained variance:", pca.explained_variance_ratio_)
+```
+
+PCA is useful for visualization, compression, and reducing redundant dimensions. It may reduce interpretability and does not guarantee better prediction accuracy.
+
+## 6. Feature Scaling, Encoding, and Selection
+
+Features are the input variables used by a model. Examples include employee experience, salary, department, and education.
+
+### Feature scaling
+
+**Standardization:**
+
+\[
+z = \frac{x - \mu}{\sigma}
+\]
+
+This transforms values to have approximately zero mean and unit standard deviation on the fitted training data.
+
+```python
+from sklearn.preprocessing import StandardScaler
+
+X = [[20, 50000], [30, 80000], [40, 100000]]
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+print(X_scaled)
+```
+
+**Min-max scaling:**
+
+\[
+x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}
+\]
+
+```python
+from sklearn.preprocessing import MinMaxScaler
+
+X = [[20, 50000], [30, 80000], [40, 100000]]
+
+scaler = MinMaxScaler()
+print(scaler.fit_transform(X))
+```
+
+Scaling is particularly useful for Logistic Regression, KNN, SVM, PCA, and K-Means. Tree-based models generally do not require scaling.
+
+### Feature encoding
+
+ML algorithms generally require categorical variables to be converted into numerical representations. One-hot encoding creates separate binary columns for categories.
+
+```python
+from sklearn.preprocessing import OneHotEncoder
+
+X = [["IT"], ["HR"], ["Finance"], ["IT"]]
+
+encoder = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+encoded = encoder.fit_transform(X)
+
+print(encoded)
+print(encoder.get_feature_names_out())
+```
+
+For older scikit-learn versions, `sparse_output=False` may need to be replaced with `sparse=False`.
+
+Other approaches include ordinal encoding for ordered categories and frequency encoding for some high-cardinality features.
+
+### Feature selection
+
+Feature selection retains useful inputs and removes irrelevant or redundant features.
+
+- **Filter methods:** correlation and statistical tests
+- **Wrapper methods:** recursive feature elimination
+- **Embedded methods:** L1 regularization and tree-based importance
+
+```python
+from sklearn.feature_selection import SelectKBest, f_classif
+
+X = [
+    [20, 50000, 1],
+    [25, 55000, 0],
+    [30, 60000, 1],
+    [35, 65000, 0],
+    [40, 70000, 1],
+    [45, 75000, 0]
+]
+y = [0, 0, 0, 1, 1, 1]
+
+selector = SelectKBest(score_func=f_classif, k=2)
+selected_X = selector.fit_transform(X, y)
+
+print("Selected feature indices:", selector.get_support(indices=True))
+print(selected_X)
+```
+
+**Critical rule:** Fit scalers, encoders, imputers, and feature selectors using training data only. Use pipelines to help prevent data leakage.
+
+## 7. Overfitting, Underfitting, and Bias–Variance
+
+- **Underfitting:** The model is too simple to capture important patterns. Training and test performance are both poor.
+- **Overfitting:** The model learns noise or training-specific details. Training performance is strong, but unseen-data performance is poor.
+- **High bias:** The model makes overly restrictive assumptions and misses important relationships.
+- **High variance:** The model changes substantially with different training samples.
+
+| Problem | Potential solution |
+|---|---|
+| Underfitting | Increase model capacity, add relevant features, reduce excessive regularization |
+| Overfitting | Simplify model, add regularization, use representative data, prune trees |
+| Unstable estimates | Use cross-validation and suitable ensemble methods |
+
+Example of regularization in Logistic Regression:
+
+```python
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression(C=0.1, max_iter=1000)
+```
+
+In scikit-learn Logistic Regression, a smaller `C` means stronger regularization.
+
+## 8. Cross-Validation and Hyperparameter Tuning
+
+### Cross-validation
+
+In `k`-fold cross-validation, data is split into `k` parts. Each part is used once as the validation set, while the other parts are used for training.
+
+```python
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+
+X = [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]]
+y = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+
+model = RandomForestClassifier(random_state=42)
+scores = cross_val_score(model, X, y, cv=5, scoring="accuracy")
+
+print("Fold scores:", scores)
+print("Mean score:", scores.mean())
+```
+
+Use stratified folds for classification when preserving class proportions is appropriate. For time-series data, use time-aware splits rather than random folds.
+
+### Hyperparameter tuning
+
+Hyperparameters are configuration values selected before or during model selection, such as tree depth, learning rate, and regularization strength.
+
+`GridSearchCV` evaluates every specified combination:
+
+```python
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+
+X = [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]]
+y = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+
+model = RandomForestClassifier(random_state=42)
+params = {
+    "n_estimators": [50, 100],
+    "max_depth": [3, 5, None]
+}
+
+search = GridSearchCV(
+    model,
+    param_grid=params,
+    cv=5,
+    scoring="accuracy",
+    n_jobs=-1
+)
+search.fit(X, y)
+
+print("Best parameters:", search.best_params_)
+print("Best CV score:", search.best_score_)
+```
+
+Tune using training data and keep a separate test set for final evaluation. Repeatedly selecting models based on test results leaks information from the test set into model selection.
+
+## 9. Classification Metrics
+
+A confusion matrix counts correct and incorrect predictions:
+
+| | Predicted Positive | Predicted Negative |
+|---|---:|---:|
+| Actually Positive | True Positive (TP) | False Negative (FN) |
+| Actually Negative | False Positive (FP) | True Negative (TN) |
+
+### Key formulas
+
+\[
+\text{Precision} = \frac{TP}{TP + FP}
+\]
+
+Precision answers: of the cases predicted positive, how many were actually positive?
+
+\[
+\text{Recall} = \frac{TP}{TP + FN}
+\]
+
+Recall answers: of the actual positive cases, how many did the model identify?
+
+\[
+F1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
+\]
+
+F1 is the harmonic mean of precision and recall.
+
+\[
+\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+\]
+
+Example using scikit-learn:
+
+```python
+from sklearn.metrics import (
+    confusion_matrix,
+    precision_score,
+    recall_score,
+    f1_score,
+    accuracy_score,
+    roc_auc_score
+)
+
+y_true = [1] * 50 + [0] * 150
+y_pred = [1] * 40 + [0] * 10 + [1] * 20 + [0] * 130
+y_score = [0.9] * 40 + [0.2] * 10 + [0.8] * 20 + [0.1] * 130
+
+print("Confusion matrix:\n", confusion_matrix(y_true, y_pred))
+print("Precision:", precision_score(y_true, y_pred))
+print("Recall:", recall_score(y_true, y_pred))
+print("F1:", f1_score(y_true, y_pred))
+print("Accuracy:", accuracy_score(y_true, y_pred))
+print("ROC-AUC:", roc_auc_score(y_true, y_score))
+```
+
+ROC-AUC measures how well a classifier ranks positive cases above negative cases across thresholds. An AUC of `0.5` indicates chance-level ranking in the usual binary setting; `1.0` indicates perfect ranking.
+
+When to use each metric:
+- Fraud detection or disease screening: recall may be critical.
+- Spam filtering: precision can matter when false positives are costly.
+- Imbalanced classification: inspect precision, recall, F1, and precision-recall curves instead of relying on accuracy alone.
+- Ranking across thresholds: ROC-AUC is useful; also assess probability calibration when probabilities drive decisions.
+
+## 10. Regression Metrics: MAE, MSE, and RMSE
+
+Regression metrics compare actual numerical values with model predictions.
+
+Suppose actual salaries are `[30000, 40000, 50000]` and predictions are `[32000, 38000, 54000]`.
+
+Residuals (actual minus predicted) are `[-2000, 2000, -4000]`.
+
+\[
+MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
+\]
+
+\[
+MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+\]
+
+\[
+RMSE = \sqrt{MSE}
+\]
+
+```python
+import numpy as np
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+actual = [30000, 40000, 50000]
+predicted = [32000, 38000, 54000]
+
+mae = mean_absolute_error(actual, predicted)
+mse = mean_squared_error(actual, predicted)
+rmse = np.sqrt(mse)
+
+print("MAE:", mae)
+print("MSE:", mse)
+print("RMSE:", rmse)
+```
+
+| Metric | Example value | Meaning |
+|---|---:|---|
+| MAE | 2666.67 | Average absolute error |
+| MSE | 8000000 | Average squared error |
+| RMSE | 2828.43 | Square root of average squared error |
+
+MAE and RMSE use the target's units; MSE uses squared units. MSE and RMSE penalize large errors more strongly than MAE. Lower error is generally better when comparing models on the same target and test dataset.
+
+## 11. Scikit-learn Pipelines and Model Persistence
+
+### What is a pipeline?
+
+A pipeline combines preprocessing and model training into one reusable workflow:
+
+1. Handle missing values.
+2. Scale numerical features.
+3. Encode categorical features.
+4. Train the model.
+5. Predict.
+
+Pipelines help prevent preprocessing leakage and ensure training and inference use consistent transformations.
+
+Install dependencies:
+
+```bash
+pip install pandas numpy scikit-learn joblib
+```
+
+### Complete pipeline example
+
+This illustrative example predicts employee attrition from numerical and categorical inputs.
+
+```python
+import pandas as pd
+import joblib
+
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+data = pd.DataFrame({
+    "experience": [1, 2, 3, 4, 5, 6, 2, 7, 8, 1, 4, 9],
+    "salary": [25000, 30000, 40000, 45000, 55000, 60000,
+               32000, 70000, 75000, 24000, 48000, 85000],
+    "department": ["IT", "HR", "IT", "Sales", "IT", "HR",
+                   "Sales", "IT", "HR", "Sales", "IT", "HR"],
+    "left_company": [1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0]
+})
+
+X = data.drop(columns=["left_company"])
+y = data["left_company"]
+
+numeric_features = ["experience", "salary"]
+categorical_features = ["department"]
+
+numeric_pipeline = Pipeline([
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler())
+])
+
+categorical_pipeline = Pipeline([
+    ("imputer", SimpleImputer(strategy="most_frequent")),
+    ("encoder", OneHotEncoder(handle_unknown="ignore"))
+])
+
+preprocessor = ColumnTransformer([
+    ("numeric", numeric_pipeline, numeric_features),
+    ("categorical", categorical_pipeline, categorical_features)
+])
+
+pipeline = Pipeline([
+    ("preprocessor", preprocessor),
+    ("model", LogisticRegression(max_iter=1000))
+])
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42, stratify=y
+)
+
+pipeline.fit(X_train, y_train)
+predictions = pipeline.predict(X_test)
+
+print(classification_report(y_test, predictions))
+joblib.dump(pipeline, "attrition_model.joblib")
+print("Model saved.")
+```
+
+**Important:** This tiny dataset is only for demonstrating code. It is not suitable for actual HR decisions. Real projects require representative data, proper validation, and fairness testing.
+
+### Model persistence
+
+Model persistence means saving a trained model so it can be reused without training from scratch.
+
+- `joblib`: commonly used for scikit-learn models and pipelines
+- `pickle`: Python object serialization
+- `ONNX`: portable representation supported by selected model types and runtimes
+
+Only load serialized model files from trusted sources. Track the Python and library versions used to create the model artifact.
+
+## 12. Inference APIs and Model Monitoring
+
+A trained model is useful in production when applications can send input and receive predictions.
+
+A common architecture is:
+
+```text
+React frontend
+     |
+Java Spring Boot application
+     |
+Authentication, business rules, REST client
+     |
+Python inference API
+     |
+FastAPI, input validation, loaded ML pipeline
+     |
+Prediction and probability
+```
+
+This is a common design, not the only option. Java can also serve models directly when a compatible runtime is available.
+
+### Build a simple FastAPI inference service
+
+Install dependencies:
+
+```bash
+pip install fastapi uvicorn pandas scikit-learn joblib
+```
+
+Create `app.py` in the directory containing `attrition_model.joblib`:
+
+```python
+import joblib
+import pandas as pd
+
+from fastapi import FastAPI
+from pydantic import BaseModel, Field
+
+app = FastAPI(title="Employee Attrition API")
+model = joblib.load("attrition_model.joblib")
+
+
+class EmployeeInput(BaseModel):
+    experience: int = Field(ge=0, le=60)
+    salary: float = Field(ge=0)
+    department: str = Field(min_length=1, max_length=100)
+
+
+@app.get("/health")
+def health():
+    return {"status": "UP"}
+
+
+@app.post("/predict")
+def predict(employee: EmployeeInput):
+    data = pd.DataFrame([employee.model_dump()])
+    prediction = int(model.predict(data)[0])
+    probability = float(model.predict_proba(data)[0][1])
+
+    return {
+        "prediction": prediction,
+        "attrition_probability": probability
+    }
+```
+
+Run the API:
+
+```bash
+uvicorn app:app --reload
+```
+
+Open the interactive API documentation at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+
+Example request:
+
+```json
+{
+  "experience": 3,
+  "salary": 42000,
+  "department": "IT"
+}
+```
+
+The prediction is for demonstration only; the toy training dataset cannot support meaningful real-world attrition estimates.
+
+### Model monitoring
+
+| Monitoring type | What to measure |
+|---|---|
+| API health | Availability, errors, latency, throughput |
+| Data quality | Missing values, invalid inputs, schema changes |
+| Data drift | Changes in incoming feature distributions |
+| Concept drift | Changes in the relationship between inputs and outcomes |
+| Model performance | Precision, recall, MAE, or other metrics once actual outcomes arrive |
+| Business impact | Cost, conversion, fraud losses, or other outcomes |
+
+Drift is not automatically proof that a model has become inaccurate. It is a signal to investigate. Evaluate actual outcomes when they become available, and retrain only when evidence and validation justify it.
+
+For production, add authentication, TLS, timeouts, structured logging, rate limits, model versioning, and a controlled retraining process.
+
+## 13. Ethics, Explainability, and Data Privacy
+
+### 13.1 Bias in machine learning
+
+Bias can enter through:
+- **Historical bias:** past decisions reflect existing inequalities.
+- **Sampling bias:** training data does not represent the population.
+- **Label bias:** target labels are inaccurate or inconsistently assigned.
+- **Measurement bias:** features are measured differently across groups.
+- **Deployment bias:** a model is used in a context different from the one for which it was designed.
+
+For example, a hiring model trained on historically biased recruitment decisions might reproduce those patterns.
+
+Ways to reduce bias include representative data collection, subgroup evaluation, appropriate fairness metrics, human review, and ongoing monitoring. No single fairness metric guarantees fairness in every context.
+
+### 13.2 Explainability
+
+Explainability helps people understand why a model produced a prediction.
+
+- **Linear regression coefficients:** show how features relate to predictions, subject to feature scaling and correlations.
+- **Decision trees:** expose decision rules.
+- **Permutation importance:** measures how performance changes when a feature is shuffled.
+- **SHAP:** estimates feature contributions to individual predictions under a defined explanation framework.
+- **LIME:** approximates a model locally to explain a particular prediction.
+
+Example using permutation importance:
+
+```python
+from sklearn.inspection import permutation_importance
+
+result = permutation_importance(
+    pipeline,
+    X_test,
+    y_test,
+    n_repeats=10,
+    random_state=42,
+    scoring="accuracy"
+)
+
+for feature, importance in zip(X_test.columns, result.importances_mean):
+    print(feature, round(importance, 4))
+```
+
+Feature importance indicates predictive usefulness, not necessarily causation. With a tiny test set, importance estimates can be unstable.
+
+### 13.3 Data privacy and security
+
+Good ML engineering practices include:
+- Collect only the data needed for the task.
+- Remove or protect personally identifiable information where appropriate.
+- Encrypt data in transit and at rest.
+- Apply least-privilege access controls.
+- Define retention and deletion policies.
+- Avoid logging sensitive input data unnecessarily.
+- Check whether third-party APIs retain submitted data.
+- Validate model inputs and protect against malicious or manipulated inputs.
+
+For HR or financial applications, restrict access to sensitive records and assess the impact of automated decisions before deployment.
+
+---
+
+## Final Revision Sheet
+
+| Topic | Key point |
+|---|---|
+| AI vs. ML vs. DL | DL is a subset of ML, which is a subset of AI |
+| Supervised learning | Learns from labeled examples |
+| Unsupervised learning | Discovers structure without target labels |
+| Reinforcement learning | Learns actions using rewards |
+| Linear Regression | Predicts continuous values |
+| Logistic Regression | Estimates class probabilities |
+| Decision Tree | Learns decision rules |
+| Random Forest | Combines randomized trees |
+| Gradient Boosting | Builds trees sequentially |
+| K-Means | Groups similar observations |
+| PCA | Reduces dimensionality while retaining variance |
+| Feature engineering | Transforms inputs into useful representations |
+| Overfitting | Training performance is good, generalization is poor |
+| Cross-validation | Estimates performance across data splits |
+| Precision | Reliability of positive predictions |
+| Recall | How many actual positives are found |
+| F1 | Harmonic mean of precision and recall |
+| ROC-AUC | Measures ranking quality across thresholds |
+| MAE / MSE / RMSE | Measures numerical prediction errors |
+| Pipeline | Combines preprocessing and an estimator |
+| Persistence | Saves a trained model for reuse |
+| Inference API | Exposes predictions to other applications |
+| Monitoring | Tracks quality, drift, reliability, and outcomes |
+| Responsible AI | Addresses bias, explainability, privacy, and accountability |
+
+## Recommended Learning Order
+
+For a Java full-stack and AI development path, study these topics in sequence:
+
+1. Python fundamentals, NumPy, and pandas.
+2. Data cleaning, exploratory analysis, and visualization.
+3. Regression, classification, and clustering.
+4. Feature engineering, validation, and evaluation metrics.
+5. Scikit-learn pipelines, model persistence, and tuning.
+6. FastAPI inference endpoints and model monitoring.
+7. Integration with Java Spring Boot REST APIs.
+8. After these fundamentals, move to neural networks, deep learning, embeddings, LLMs, and RAG.
+
+## Requirements
+
+Install the main libraries with:
+
+```bash
+pip install numpy pandas matplotlib scikit-learn joblib fastapi uvicorn
+```
+
+---
+
+**Note:** Examples are educational demonstrations. Validate models with appropriate datasets and evaluation procedures before using them in real-world decisions.
+'''
+
+path = Path("/mnt/data/README_Machine_Learning_Fundamentals.md")
+path.write_text(content, encoding="utf-8")
+print(f"Created: {path}")
+print(f"Size: {path.stat().st_size:,} bytes")
 
 
 
